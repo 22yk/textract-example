@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,7 +20,9 @@ func init() {
 	)))
 }
 
-func processFile(filePath string) {
+func processFile(filePath string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		panic(err)
@@ -41,7 +44,12 @@ func processFile(filePath string) {
 
 func main() {
 	files := []string{"./test.jpg", "./test2.jpg"}
+	var wg sync.WaitGroup
+
 	for _, file := range files {
-		processFile(file)
+		wg.Add(1)
+		go processFile(file, &wg)
 	}
+
+	wg.Wait()
 }

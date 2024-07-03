@@ -35,3 +35,24 @@ func BenchmarkProcessFile(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkProcessFileParallel(b *testing.B) {
+	filePath := "./test.jpg"
+	file, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := textractSession.DetectDocumentText(&textract.DetectDocumentTextInput{
+				Document: &textract.Document{
+					Bytes: file,
+				},
+			})
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
